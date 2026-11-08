@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PaperIQ – understand any paper in minutes</title>
+<style>
+:root{--bg:#0f0f12;--fg:#f5f5f5;--mut:#9d9da6;--card:#17171b;--field:#232327;--line:#34343a;--acc:#b39dff;--bar:#212125;--barmenu:#2c2c31;--pill:#f5f5f5;--pillink:#18181b;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f7f7f8;--fg:#17171b;--mut:#62626b;--card:#fff;--field:#efeff2;--line:#dcdce1;--acc:#6d4cff;--bar:#fff;--barmenu:#fff;--pill:#17171b;--pillink:#f5f5f5;color-scheme:light}}
+:root[data-theme="dark"]{--bg:#0f0f12;--fg:#f5f5f5}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 "Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.w{max-width:1000px;margin:0 auto;padding:0 20px}
+header{display:flex;justify-content:space-between;align-items:center;padding:24px 0}
+.logo{font:700 22px Georgia,serif;letter-spacing:-.02em}
+.hero{padding:72px 0 48px;text-align:center}
+.hero h1{font:400 clamp(40px,7vw,76px)/1 Georgia,"Times New Roman",serif;letter-spacing:-.035em;margin:0 auto 18px;max-width:14ch}
+.hero>p{max-width:46ch;margin:0 auto 40px;color:var(--mut);font-size:18px}
+#status{display:flex;justify-content:center;margin-top:22px;min-height:20px}
+.log{max-width:760px;margin:24px auto 0;display:flex;flex-direction:column;gap:12px;text-align:left}
+.log:empty{display:none}
+.log p{margin:0;padding:12px 16px;border-radius:16px;background:var(--field);align-self:flex-end;max-width:85%}
+.log p.bot{background:none;border:1px solid var(--line);align-self:flex-start;max-width:100%}
+.log .ll{padding-left:4px}
+.work{padding:48px 0;display:grid;grid-template-columns:280px 1fr;gap:20px}
+.work[hidden]{display:none}.work.show{animation:rise .5s cubic-bezier(.23,1,.32,1)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+.card{background:var(--card);border-radius:22px;padding:24px;min-width:0}
+.card h3{font:600 13px "Segoe UI",sans-serif;color:var(--mut);margin:0 0 16px}
+.stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+.page{min-height:220px}
+.page h4{font:400 28px/1.15 Georgia,serif;margin:0 0 4px}
+.page small{color:var(--mut)}
+.page p{max-width:60ch;margin:16px 0 0;font-size:16px}
+.page mark{background:color-mix(in srgb,var(--acc) 30%,transparent);color:inherit;border-radius:3px;padding:0 2px}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;padding:56px 0;border-top:1px solid var(--line)}
+.feat h3{font:400 22px/1.2 Georgia,serif;margin:0 0 8px}.feat p{color:var(--mut);margin:0}
+.cta{padding:56px 0 72px;text-align:center}
+.cta h2{font:400 clamp(28px,4vw,40px)/1.1 Georgia,serif;letter-spacing:-.02em;margin:0 0 24px}
+footer{padding:0 0 48px;color:var(--mut);font-size:13px;text-align:center}
+/* specular */
+.spec{position:relative;isolation:isolate;padding:16px 34px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--fg) 4%,transparent);font-weight:500;font-size:16px;cursor:pointer;transition:transform .25s}
+.spec.sm{padding:9px 18px;font-size:14px;border-radius:12px}
+.spec:active{transform:scale(.97)}.spec:disabled{opacity:.5;cursor:default}
+.spec::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from calc(var(--a,330deg) - 45deg),transparent 0,var(--fg) 45deg,transparent 90deg);opacity:var(--o,.35);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.spec::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(60% 120% at 50% 0,color-mix(in srgb,var(--fg) 10%,transparent),transparent);opacity:calc(var(--o,.35)*.7);pointer-events:none;z-index:-1}
+/* lattice */
+.ll{display:inline-flex;align-items:center;gap:9px;font-size:14px;line-height:1}
+.lg{display:grid;grid-template-columns:repeat(3,6px);gap:2px}
+.lg i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.15;animation:lon 864ms cubic-bezier(.77,0,.175,1) infinite}
+.lg i.h{animation:none;opacity:.07}
+.ll:not([data-s="working"]) .lg i{animation:none;opacity:.15;transition:background .2s,opacity .2s}
+.ll[data-s="done"] .lg i.d{background:#22c55e;opacity:1}
+.ll[data-s="error"] .lg i.e{background:#ef4444;opacity:1}
+.lt{font-weight:500}.tm{font:12px ui-monospace,Menlo,monospace;font-style:normal;opacity:.6;font-variant-numeric:tabular-nums}
+@keyframes lon{0%,100%{opacity:.15}18%,42%{opacity:1}62%{opacity:.15}}
+/* branched */
+.bm{display:flex;flex-direction:column;width:fit-content;padding-left:14px;position:relative}
+.bm::before{content:"";position:absolute;top:8px;bottom:0;left:0;width:2px;background:linear-gradient(var(--line) 55%,transparent)}
+.bh{background:none;border:0;padding:9px 0;color:var(--mut);font-weight:500;text-align:left;cursor:pointer;transition:color .2s}
+.bs.open .bh{color:var(--fg)}
+.bb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.23,1,.32,1)}
+.bs.open .bb{grid-template-rows:1fr}
+.bf{min-height:0;overflow:hidden}.bt{position:relative;padding:6px 0}
+.bt svg{position:absolute;left:0;top:0;overflow:visible;opacity:0;transition:opacity .2s}
+.bs.open .bt svg{opacity:1;transition-delay:.1s}
+.bt path{fill:none;stroke-width:1.5;stroke-linecap:round}
+.bt .b{stroke:var(--line)}.bt .r{stroke:var(--fg);transition:stroke-dashoffset .4s cubic-bezier(.23,1,.32,1)}
+.bi{display:block;width:100%;height:36px;padding:0 0 0 40px;border:0;background:none;color:var(--mut);text-align:left;cursor:pointer;white-space:nowrap;transition:color .2s}
+.bi:hover{color:var(--fg)}.bi.on{color:var(--fg);font-weight:500}
+/* folder */
+.ff{position:relative;width:200px;padding-top:14px;margin:170px auto 0;font-size:13px;font-weight:500;line-height:1}
+.ffo{position:relative;width:200px;height:148px}
+.ffb{position:absolute;inset:0;border-radius:14px;background:#3f3f46;transform:perspective(600px) rotateX(8deg);transform-origin:50% 100%}
+.ffb::before{content:"";position:absolute;top:-14px;left:0;width:42%;height:28px;border-radius:14px 14px 0 0;background:inherit}
+.ffp{position:absolute;top:10%;left:8%;right:8%;height:50%;border-radius:6px;background:#f5f5f5;opacity:0;transform:translateY(10px);transition:.3s}
+.ffr{position:absolute;inset:auto 0 0 0;height:76%;padding:14px 16px;border-radius:14px;background:linear-gradient(#5b5b63,#52525b 60%);color:#f5f5f5;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;box-shadow:0 -10px 24px rgba(0,0,0,.28);transform:perspective(600px) rotateX(-16deg);transform-origin:50% 100%;transition:transform .52s cubic-bezier(.23,1,.32,1)}
+.ffr small{font-size:11px;opacity:.55}
+.ff.open .ffr{transform:perspective(600px) rotateX(-34deg)}.ff.open .ffp{opacity:1;transform:none}
+.ffi{position:absolute;top:14px;left:50%;width:0;height:0;z-index:1}
+.fp{position:absolute;top:0;left:50%;height:34px;padding:0 14px;border:0;border-radius:17px;background:var(--pill);color:var(--pillink);white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);cursor:pointer;opacity:0;pointer-events:none;transform:translate(-50%,44px) scale(.6);transition:transform .3s cubic-bezier(.23,1,.32,1) calc((4 - var(--i))*20ms),opacity .15s}
+.ff.open .fp{opacity:1;pointer-events:auto;transform:translate(calc(-50% + var(--x)),var(--y)) rotate(var(--r));transition:transform .52s cubic-bezier(.34,1.57,.64,1) calc(var(--i)*45ms),opacity .15s calc(var(--i)*45ms)}
+.ff.live .fp{transition:none;cursor:grab}.fp.drag{cursor:grabbing}
+.ftr{position:absolute;inset:auto 0 0 0;height:76%;border:0;border-radius:14px;background:none;cursor:pointer;z-index:3}
+/* glide select */
+.gs{--gs-s:var(--field);--gs-h:var(--line);position:relative;display:inline-block}
+.gs-t{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px 0 10px;border:0;border-radius:6px;background:var(--gs-s);font-size:13px;font-weight:500;cursor:pointer;transition:background .1s,transform .16s}
+.gs-t:hover,.gs-t[aria-expanded=true]{background:color-mix(in srgb,var(--gs-h) 60%,var(--gs-s))}
+.gs-t:active{transform:scale(.97)}
+.gs-t svg{color:var(--mut);transition:transform .2s}.gs-t[aria-expanded=true] svg{transform:rotate(180deg)}
+.gs-m{position:absolute;z-index:20;top:calc(100% + 6px);left:0;width:200px;padding:4px;border-radius:10px;background:var(--gs-s);box-shadow:0 4px 16px rgba(0,0,0,.25),0 0 0 1px var(--line);transform-origin:top left;opacity:0;transform:scale(.95);transition:opacity .18s cubic-bezier(.23,1,.32,1),transform .18s cubic-bezier(.23,1,.32,1)}
+.gs.up .gs-m{top:auto;bottom:calc(100% + 6px);transform-origin:bottom left}
+.gs-m[data-s=open]{opacity:1;transform:none}.gs-m[data-s=closed]{transition-duration:.12s;pointer-events:none}
+.gs-list{position:relative;display:grid;gap:1px}
+.gs-p{position:absolute;top:0;left:0;right:0;height:30px;border-radius:6px;background:var(--gs-h);opacity:0;pointer-events:none;transition:transform .22s cubic-bezier(.23,1,.32,1),opacity .15s}
+.gs-o{position:relative;z-index:1;display:flex;align-items:center;gap:8px;height:30px;padding:0 8px 0 10px;border-radius:6px;font-size:13px;cursor:pointer;user-select:none}
+.gs-n{flex:1;font-weight:500}.gs-g{color:var(--mut);font-size:11px}.gs-c{color:var(--fg)}
+/* prompt bar (big) */
+.pb{--hov:color-mix(in srgb,var(--fg) 9%,transparent);position:relative;width:min(760px,100%);margin:0 auto;text-align:left;color:var(--fg);font-size:17px;line-height:26px}
+.field{position:relative;isolation:isolate;display:flex;flex-direction:column;gap:14px;padding:20px 20px 16px;border-radius:26px;background:var(--bar);box-shadow:0 0 0 1px var(--line),0 30px 70px -30px rgba(0,0,0,.55);cursor:text}
+.field::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(140% 120% at 0 100%,color-mix(in srgb,var(--acc) 28%,transparent),transparent 62%);opacity:0;transition:opacity .5s}
+.pb.max .field::before{opacity:1}
+.pb textarea{display:block;width:100%;min-height:56px;padding:0;border:0;background:none;color:inherit;font:inherit;resize:none;outline:none;overflow-y:auto;max-height:180px}
+.pb textarea::placeholder{color:color-mix(in srgb,var(--fg) 42%,transparent)}
+.bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.sp{flex:1}
+.tool,.pick,.send{border:0;cursor:pointer;background:none;color:var(--mut);border-radius:10px;height:36px;display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;padding:0 10px;transition:background .15s,color .15s}
+.tool{width:36px;justify-content:center;padding:0;font-size:22px}
+.tool:hover,.pick:hover,.pick.on{background:var(--hov);color:var(--fg)}
+.pb.max [data-a="eff"]{color:var(--acc)}
+.pb .gs{--gs-s:var(--barmenu);--gs-h:color-mix(in srgb,var(--fg) 14%,var(--barmenu))}
+.pb .gs-t{height:36px;border-radius:10px;background:none;color:var(--mut);padding:0 8px 0 10px}
+.pb .gs-t:hover,.pb .gs-t[aria-expanded=true]{background:var(--hov);color:var(--fg)}
+.send{width:36px;padding:0;justify-content:center;border-radius:12px;background:color-mix(in srgb,var(--fg) 10%,var(--bar));color:color-mix(in srgb,var(--fg) 40%,var(--bar));transition:background .2s,color .2s,transform .16s}
+.send.armed{background:var(--fg);color:var(--bar)}.send:active{transform:scale(.96)}.send svg{width:18px;height:18px}
+.an{height:36px;padding:0 16px;border-radius:12px;font-size:14px;display:inline-flex;align-items:center;gap:7px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips:empty{display:none}
+.chip{display:inline-flex;gap:6px;align-items:center;height:28px;padding:0 6px 0 10px;border-radius:9px;background:var(--hov);font-size:13px}
+.chip button{border:0;background:none;color:inherit;opacity:.6;cursor:pointer}
+.menu{position:absolute;left:0;right:0;bottom:calc(100% + 10px);z-index:5;padding:6px;border-radius:16px;background:var(--barmenu);box-shadow:0 0 0 1px var(--line),0 20px 50px -20px rgba(0,0,0,.5);animation:pop .18s cubic-bezier(.23,1,.32,1)}
+.menu[hidden]{display:none}
+@keyframes pop{from{opacity:0;transform:translateY(4px) scale(.98)}}
+.row2{display:flex;gap:10px;width:100%;height:42px;align-items:center;padding:0 12px;border:0;border-radius:10px;background:none;text-align:left;cursor:pointer;font-size:14px}
+.row2:hover,.row2.cur{background:var(--hov)}
+.row2 b{font-weight:500}.row2 span{font-size:13px;color:var(--mut);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eff{padding:14px 16px 16px;font-size:14px}.eff small{display:flex;justify-content:space-between;color:var(--mut);font-size:12px;margin:10px 0}
+.trk{display:flex;gap:5px}.trk button{flex:1;height:26px;border:0;border-radius:7px;background:var(--hov);cursor:pointer}
+.trk button.f{background:color-mix(in srgb,var(--fg) 35%,transparent)}.pb.max .trk button.f{background:var(--acc)}
+@media(max-width:820px){.work{grid-template-columns:1fr}.feat{grid-template-columns:1fr;gap:28px}.card{padding:18px}.hero{padding-top:40px}.field{padding:16px 16px 12px;border-radius:22px}.pb{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:1ms!important;transition-duration:1ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="w">
+<header><span class="logo">PaperIQ</span><button class="spec sm" data-focus>Analyze a paper</button></header>
+
+<div class="hero">
+ <h1>Understand any paper in minutes.</h1>
+ <p>Add a PDF, press Analyze, then ask questions. Every answer points to the page it came from.</p>
+ <div class="pb" id="pb"></div>
+ <div id="status" hidden></div>
+ <div class="log" id="log" aria-live="polite"></div>
+</div>
+
+<div class="work" id="work" hidden>
+ <aside class="card"><h3>Outline</h3><div id="outline"></div></aside>
+ <div class="stack">
+  <div class="card page" id="page"></div>
+  <div class="card"><h3>Key findings</h3><div class="ff" id="ff"></div></div>
+ </div>
+</div>
+
+<div class="feat">
+ <div><h3>Ask in plain language</h3><p>Type a question, or use / for shortcuts like summarize and limitations.</p></div>
+ <div><h3>Answers cite pages</h3><p>Check every answer against the page it points to.</p></div>
+ <div><h3>Findings first</h3><p>The main results are pulled out for you, and the outline jumps to any section.</p></div>
+</div>
+<div class="cta"><h2>Read less. Understand more.</h2><button class="spec" data-focus>Analyze a paper</button></div>
+<footer>PaperIQ demo. The sample paper and its numbers are made up for illustration.</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ---------- Sample paper (made up) ---------- */
+const SEC={
+ abstract:['Abstract',1,'We study how street-tree canopy relates to peak afternoon heat across 12 mid-sized cities. Neighbourhoods with higher canopy were cooler on average, with <mark>peak surface temperature 2.1 °C lower</mark> at 30% cover than at 10%.'],
+ intro:['Introduction',2,'Urban heat islands raise health risks during heatwaves. Trees are a low-cost response, but evidence on <mark>how much cover is enough</mark> is mixed across climates.'],
+ methods:['Methods',4,'Surface temperature came from <mark>satellite thermal imagery</mark> over three summers. Canopy cover was measured per 250 m grid cell and compared with temperature after adjusting for pavement share and distance to water.'],
+ results:['Results',6,'Temperature fell steadily as canopy rose from 10% to 40%. Beyond 40%, <mark>gains flattened</mark>. The effect held in 10 of 12 cities.'],
+ discuss:['Discussion',9,'Planting priority should go to low-canopy, high-pavement blocks, where each added tree has the most effect. Results may not transfer to very humid or very dry regions.'],
+ limits:['Limitations',10,'Only <mark>12 cities</mark> were studied, all mid-sized. Satellite data measures surface, not air, temperature, and tree age was not recorded.'],
+ refs:['References',12,'41 references, mostly urban climate and public health journals.']};
+const ANS=[
+ [/summar|abstract|about/,'The paper links street-tree canopy to cooler afternoons in 12 mid-sized cities. Going from 10% to 30% cover lowered peak surface temperature by about 2.1 °C (p. 1, p. 6).','abstract'],
+ [/method|how|data|measure/,'Temperature came from satellite thermal imagery over three summers, compared against canopy cover per 250 m cell and adjusted for pavement and water (p. 4).','methods'],
+ [/limit|weak|caveat|bias/,'Only 12 mid-sized cities, surface rather than air temperature, and no record of tree age (p. 10).','limits'],
+ [/result|find|effect|cool|degree|temp/,'Heat fell steadily up to 40% canopy, then gains flattened. The effect held in 10 of 12 cities (p. 6).','results'],
+ [/plant|recommend|policy|where/,'Prioritise low-canopy, high-pavement blocks, where each tree helps most (p. 9).','discuss']];
+
+/* ---------- Specular button ---------- */
+addEventListener('pointermove',e=>{$$('.spec').forEach(b=>{const r=b.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;const a=Math.atan2(e.clientY-cy,e.clientX-cx)*180/Math.PI+90;const d=Math.hypot(Math.max(Math.abs(e.clientX-cx)-r.width/2,0),Math.max(Math.abs(e.clientY-cy)-r.height/2,0));b.style.setProperty('--a',a+'deg');b.style.setProperty('--o',(.35+.65*Math.max(0,1-d/250)).toFixed(2))})},{passive:true});
+$$('[data-focus]').forEach(b=>b.onclick=()=>{scrollTo({top:0});setTimeout(()=>$('#pb textarea').focus({preventScroll:true}),300)});
+
+/* ---------- Lattice loader ---------- */
+function lattice(el,label,done){
+ const P=[0,1,2,7,null,3,6,5,4],D=[2,3,5,7],X=[0,2,4,6,8],W={working:label,done:done||'Done in',error:'Stopped after'};
+ el.className='ll';
+ el.innerHTML='<span class="lg" aria-hidden="true">'+P.map((u,i)=>`<i class="${D.includes(i)?'d ':''}${X.includes(i)?'e ':''}${u==null?'h':''}" style="animation-delay:${u==null?0:u*108}ms"></i>`).join('')+'</span><span class="lt"></span><em class="tm">0.0s</em>';
+ el.setAttribute('role','status');
+ const t=$('.lt',el),tm=$('.tm',el);let t0,iv;
+ return{set(s){el.dataset.s=s;t.textContent=W[s];clearInterval(iv);if(s==='working'){t0=performance.now();tm.textContent='0.0s';iv=setInterval(()=>tm.textContent=((performance.now()-t0)/1000).toFixed(1)+'s',100)}}}
+}
+
+/* ---------- Branched menu ---------- */
+function branched(el,items,onSel,openSet,start){
+ const ROW=36,PAD=6,TR=14,IN=40,R=10,END=IN-8,ry=k=>PAD+k*ROW+ROW/2;
+ const br=k=>`M ${TR} ${ry(k)-R} A ${R} ${R} 0 0 0 ${TR+R} ${ry(k)} H ${END}`;
+ const rc=k=>`M ${TR} 0 V ${ry(k)-R} A ${R} ${R} 0 0 0 ${TR+R} ${ry(k)} H ${END}`;
+ const len=k=>ry(k)-R+Math.PI*R/2+(END-TR-R);
+ let active=start;
+ el.classList.add('bm');
+ el.innerHTML=items.map((it,i)=>{const h=PAD*2+it.c.length*ROW;return`<div class="bs${openSet.includes(i)?' open':''}"><button class="bh" aria-expanded="${openSet.includes(i)}">${it.l}</button><div class="bb"><div class="bf"><div class="bt" style="height:${h}px"><svg width="${IN}" height="${h}" aria-hidden="true"><path class="b" d="M ${TR} 0 V ${ry(it.c.length-1)-R}"/>${it.c.map((_,k)=>`<path class="b" d="${br(k)}"/>`).join('')}${it.c.map((c,k)=>`<path class="r" data-v="${c[0]}" d="${rc(k)}" style="stroke-dasharray:${len(k)};stroke-dashoffset:${len(k)}" data-len="${len(k)}"/>`).join('')}</svg>${it.c.map(c=>`<button class="bi" data-v="${c[0]}">${c[1]}</button>`).join('')}</div></div></div></div>`}).join('');
+ const paint=()=>{$$('.bi',el).forEach(b=>b.classList.toggle('on',b.dataset.v===active));$$('.r',el).forEach(p=>p.style.strokeDashoffset=p.dataset.v===active?0:p.dataset.len)};
+ $$('.bh',el).forEach(h=>h.onclick=()=>{const s=h.parentElement;s.classList.toggle('open');h.setAttribute('aria-expanded',s.classList.contains('open'))});
+ $$('.bi',el).forEach(b=>b.onclick=()=>{active=b.dataset.v;paint();onSel(active)});
+ paint();
+ return{set(v){active=v;paint()}}
+}
+
+/* ---------- Folder float ---------- */
+function folder(el,items,onPick){
+ el.innerHTML=`<div class="ffi"></div><div class="ffo"><span class="ffb"></span><span class="ffp"></span><span class="ffr"><span>Key findings</span><small>${items.length} notes</small></span><button class="ftr" aria-expanded="false" aria-label="Key findings, ${items.length} notes"></button></div>`;
+ const anc=$('.ffi',el),SP=170,LIFT=26,{Engine,Bodies,Body,Composite}=Matter;
+ const pills=items.map((it,i)=>{const b=document.createElement('button');b.className='fp';b.style.setProperty('--i',i);b.textContent=it[0];b.tabIndex=-1;anc.appendChild(b);return b});
+ let pos=[],sizes=[],eng,bodies=[],raf=0,live=false,timer,drag=null,zone,pointerType='mouse';
+ const jit=i=>{const x=Math.sin(i*12.9898+4.1414)*43758.5453;return x-Math.floor(x)};
+ function layout(){sizes=pills.map(p=>({w:p.offsetWidth,h:p.offsetHeight}));const rows=[];let row=[],w=0;sizes.forEach((s,i)=>{if(row.length&&w+12+s.w>SP*2){rows.push({row,w});row=[];w=0}row.push({i,pw:s.w});w+=(row.length>1?12:0)+s.w});if(row.length)rows.push({row,w});rows.forEach((r,ri)=>{let x=-r.w/2;r.row.forEach(({i,pw})=>{const j=jit(i);pos[i]={x:x+pw/2,y:-LIFT-ri*48-j*6,r:6*(j*2-1)};x+=pw+12})});pills.forEach((p,i)=>{p.style.setProperty('--x',pos[i].x.toFixed(1)+'px');p.style.setProperty('--y',pos[i].y.toFixed(1)+'px');p.style.setProperty('--r',pos[i].r.toFixed(1)+'deg')})}
+ const write=()=>bodies.forEach((b,i)=>{pills[i].style.setProperty('--x',b.position.x.toFixed(1)+'px');pills[i].style.setProperty('--y',(b.position.y-sizes[i].h/2).toFixed(1)+'px')});
+ function start(){
+  if(eng||!window.Matter)return;
+  eng=Engine.create({gravity:{x:0,y:0}});
+  bodies=pills.map((p,i)=>{const b=Bodies.rectangle(pos[i].x,pos[i].y+sizes[i].h/2,sizes[i].w,sizes[i].h,{chamfer:{radius:16},restitution:.55,friction:0,frictionAir:.08,inertia:Infinity});b.ph=jit(i)*6.28;return b});
+  const ys=pos.map(p=>p.y);zone={l:-SP-8,r:SP+8,t:Math.min(...ys)-8,b:-LIFT+34};const T=80,W=zone.r-zone.l;
+  Composite.add(eng.world,[...bodies,Bodies.rectangle(0,zone.t-T/2,W+2*T,T,{isStatic:true}),Bodies.rectangle(0,zone.b+T/2,W+2*T,T,{isStatic:true}),Bodies.rectangle(zone.l-T/2,0,T,2e3,{isStatic:true}),Bodies.rectangle(zone.r+T/2,0,T,2e3,{isStatic:true})]);
+  live=true;el.classList.add('live');const t0=performance.now();let last=0;
+  const tick=now=>{if(!eng)return;const dt=last?Math.min(32,now-last):16;last=now;const t=(now-t0)/1000,k=.5*5e-5*Math.min(1,t/2);bodies.forEach((b,i)=>{if(drag&&drag.i===i)return;Body.applyForce(b,b.position,{x:Math.sin(t*.9+b.ph)*k*b.mass,y:Math.cos(t*1.3+b.ph*1.7)*k*b.mass})});Engine.update(eng,dt);write();raf=requestAnimationFrame(tick)};
+  raf=requestAnimationFrame(tick)}
+ function stop(){clearTimeout(timer);cancelAnimationFrame(raf);if(eng){write();Composite.clear(eng.world,false,true);Engine.clear(eng);eng=null}bodies=[];live=false;drag=null;el.classList.remove('live');layout()}
+ function set(o){if(el.classList.contains('open')===o)return;el.classList.toggle('open',o);$('.ftr',el).setAttribute('aria-expanded',o);pills.forEach(p=>{p.tabIndex=o?0:-1});if(o){timer=setTimeout(start,520+(items.length-1)*45+80)}else stop()}
+ const pick=i=>{onPick(items[i][1]);set(false);$('#page').scrollIntoView({block:'center'})};
+ const pt=e=>{const r=anc.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+ pills.forEach((p,i)=>{
+  p.onpointerdown=e=>{if(!live||e.button)return;const q=pt(e),b=bodies[i];drag={i,id:e.pointerId,dx:b.position.x-q.x,dy:b.position.y-q.y,sx:e.clientX,sy:e.clientY,moved:false};p.setPointerCapture(e.pointerId)};
+  p.onpointermove=e=>{if(!drag||drag.i!==i)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>=4){drag.moved=true;p.classList.add('drag')}if(!drag.moved)return;const q=pt(e),s=sizes[i],b=bodies[i];const x=Math.min(zone.r-s.w/2,Math.max(zone.l+s.w/2,q.x+drag.dx)),y=Math.min(zone.b-s.h/2,Math.max(zone.t+s.h/2,q.y+drag.dy));Body.setVelocity(b,{x:(x-b.position.x)*.6,y:(y-b.position.y)*.6});Body.setPosition(b,{x,y})};
+  p.onpointerup=p.onpointercancel=e=>{if(!drag||drag.i!==i)return;const m=drag.moved;drag=null;p.classList.remove('drag');if(!m&&e.type==='pointerup')pick(i)};
+  p.onclick=e=>{if(!live||e.detail===0)pick(i)};
+ });
+ el.addEventListener('pointerdown',e=>pointerType=e.pointerType);
+ el.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')set(true)});
+ el.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!drag)set(false)});
+ $('.ftr',el).onclick=()=>{if(pointerType!=='mouse')set(!el.classList.contains('open'));else set(true)};
+ el.addEventListener('keydown',e=>{if(e.key==='Escape')set(false)});
+ return{layout}
+}
+
+/* ---------- Glide select ---------- */
+function glide(el,opts,val,onChange,up){
+ const ROW=30;let cur=opts.findIndex(o=>o[0]===val),act=null,open=false,menu=null,pill=null;
+ el.className='gs'+(up?' up':'');
+ el.innerHTML='<button type="button" class="gs-t" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-label="Answer style" title="Answer style"><span class="gs-l"></span><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button>';
+ const t=$('.gs-t',el),l=$('.gs-l',el);
+ const paint=()=>{l.textContent=opts[cur][1]};
+ const setA=i=>{act=i;if(!pill)return;if(i==null){pill.style.opacity=0;return}pill.style.transform='translateY('+i*(ROW+1)+'px)';pill.style.opacity=1};
+ function openM(){
+  if(open)return;open=true;t.setAttribute('aria-expanded','true');
+  menu=document.createElement('div');menu.className='gs-m';
+  menu.innerHTML='<div class="gs-list" role="listbox" aria-label="Answer style"><span class="gs-p"></span>'+opts.map((o,i)=>'<div class="gs-o" role="option" aria-selected="'+(i===cur)+'" data-i="'+i+'"><span class="gs-n">'+o[1]+'</span><span class="gs-g">'+o[2]+'</span><svg class="gs-c" style="visibility:'+(i===cur?'visible':'hidden')+'" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M2.5 7 5.5 10 10.5 3.5"/></svg></div>').join('')+'</div>';
+  el.appendChild(menu);pill=$('.gs-p',menu);
+  pill.style.transition='none';setA(cur);void pill.offsetHeight;pill.style.transition='';
+  menu.dataset.s='closed';void menu.offsetHeight;menu.dataset.s='open';
+  $$('.gs-o',menu).forEach(o=>{o.onpointerenter=()=>setA(+o.dataset.i);o.onclick=()=>choose(+o.dataset.i)});
+ }
+ function closeM(){if(!open)return;open=false;t.setAttribute('aria-expanded','false');const m=menu;m.dataset.s='closed';setTimeout(()=>m.remove(),140);menu=pill=null;act=null}
+ function choose(i){if(i!==cur){cur=i;paint();onChange(opts[i][0])}closeM();t.focus()}
+ t.onclick=()=>open?closeM():openM();
+ t.onkeydown=e=>{const k=e.key;
+  if(!open){if(k==='Enter'||k===' '||k==='ArrowDown'||k==='ArrowUp'){e.preventDefault();openM()}return}
+  if(k==='ArrowDown'||k==='ArrowUp'){e.preventDefault();setA(Math.min(opts.length-1,Math.max(0,(act??cur)+(k==='ArrowDown'?1:-1))))}
+  else if(k==='Enter'||k===' '){e.preventDefault();choose(act??cur)}
+  else if(k==='Escape'||k==='Tab'){if(k==='Escape')e.preventDefault();closeM()}};
+ document.addEventListener('pointerdown',e=>{if(open&&!el.contains(e.target))closeM()});
+ paint();
+}
+let answerStyle='standard';
+function styled(a,sec){
+ if(answerStyle==='brief'){const first=a.split(/\.\s+(?=[A-Z])/)[0].replace(/\s*\(p\.[^)]*\)\.?$/,'').replace(/\.$/,'');return first+' (p. '+SEC[sec][1]+').'}
+ if(answerStyle==='detailed')return a+' Excerpt: “'+SEC[sec][2].replace(/<\/?mark>/g,'')+'”';
+ return a;
+}
+
+/* ---------- Paper state ---------- */
+let analyzed=false,analyzing=false;
+const page=$('#page'),work=$('#work'),statusEl=$('#status');
+function showSec(id){const s=SEC[id];page.innerHTML=`<h4>${s[0]}</h4><small>Sample paper · Page ${s[1]}</small><p>${s[2]}</p>`;outline.set(id)}
+const outline=branched($('#outline'),[{l:'Paper',c:[['abstract','Abstract'],['intro','Introduction'],['methods','Methods'],['results','Results'],['discuss','Discussion'],['limits','Limitations']]},{l:'Back matter',c:[['refs','References']]}],id=>showSec(id),[0],'');
+const fold=folder($('#ff'),[['Canopy cuts peak heat 2.1 °C','results'],['Gains flatten past 40%','results'],['Only 12 cities studied','limits'],['Satellite thermal data','methods']],id=>showSec(id));
+const status=lattice(statusEl,'Reading paper','Analyzed in');
+let anBtn;
+function analyze(){
+ if(analyzed){work.scrollIntoView();return}
+ if(analyzing)return;analyzing=true;anBtn.disabled=true;
+ statusEl.hidden=false;status.set('working');
+ setTimeout(()=>{status.set('done');analyzed=true;analyzing=false;anBtn.disabled=false;anBtn.lastChild.textContent='View results';
+  work.hidden=false;work.classList.add('show');fold.layout();showSec('abstract')},2400);
+}
+
+/* ---------- Prompt bar ---------- */
+(function(){
+ const root=$('#pb'),log=$('#log');
+ const SRC=[['Upload a PDF','Not connected in this demo',1],['Sample paper','Urban heat and tree cover'],['Page range','Limit the answer to pages']];
+ const CMD=[['/summarize','Short summary of the paper'],['/methods','How the study was done'],['/limitations','What the authors caveat'],['/findings','The main results']];
+ const EFF=['Low','Medium','High','Extra','Max'];
+ let eff=2,busy=false,files=[],menu=null,cur=0,list=[],timer;
+ root.innerHTML=`<div class="menu" hidden></div><div class="field"><div class="chips"></div><textarea rows="2" placeholder="Add a PDF, or ask a question about the paper…" aria-label="Question"></textarea><div class="bar"><button class="tool" data-a="plus" aria-label="Add sources">+</button><span id="gs"></span><button class="pick" data-a="eff" aria-label="Choose effort"></button><span class="sp"></span><button class="spec an" id="an" type="button"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 7.1L22 12l-7.6 2.9L12 22l-2.4-7.1L2 12l7.6-2.9z"/></svg><span>Analyze</span></button><button class="send" aria-label="Send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path/></svg></button></div></div><input type="file" accept="application/pdf" hidden>`;
+ const ta=$('textarea',root),mn=$('.menu',root),send=$('.send',root),fin=$('input',root),chips=$('.chips',root),path=$('path',send);
+ anBtn=$('#an',root);anBtn.onclick=analyze;
+ glide($('#gs',root),[['brief','Brief','Short'],['standard','Standard','Default'],['detailed','Detailed','With excerpt']],'standard',v=>answerStyle=v,true);
+ const UP=[12,4.5,18.5,11,14.25,11,14.25,19.5,9.75,19.5,9.75,11,5.5,11],SQ=[12,6,18,6,18,12,18,18,6,18,6,12,6,6];
+ const pa=t=>UP.map((v,i)=>(v+(SQ[i]-v)*t).toFixed(2)).reduce((d,v,i)=>d+(i%2?' ':(i?'L':'M'))+v,'')+'Z';
+ path.setAttribute('d',pa(0));
+ const morph=to=>{const from=to?0:1,t0=performance.now();const f=now=>{let k=Math.min(1,(now-t0)/240);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;const v=from+(to-from)*k,g=Math.sin(v*Math.PI),sx=1-.12*g;path.setAttribute('d',pa(v));send.firstChild.style.transform=`rotate(${(to?1:-1)*8*g}deg) scale(${sx},${1/sx})`;if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)};
+ const paintBtns=()=>{$('[data-a="eff"]',root).innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 7.1L22 12l-7.6 2.9L12 22l-2.4-7.1L2 12l7.6-2.9z"/></svg>${EFF[eff]}`;root.classList.toggle('max',eff===EFF.length-1)};
+ const arm=()=>{const on=busy||ta.value.trim()||files.length;send.disabled=!on;send.classList.toggle('armed',!!on)};
+ const close=()=>{menu=null;mn.hidden=true};
+ function show(kind){
+  menu=kind;mn.hidden=false;
+  if(kind==='eff'){mn.innerHTML=`<div class="eff"><b>Effort</b> <span style="color:var(--mut);margin-left:8px">${EFF[eff]}</span><small><span>Faster</span><span>Deeper</span></small><div class="trk" role="group" aria-label="Effort">${EFF.map((e,i)=>`<button data-i="${i}" aria-label="${e}" class="${i<=eff?'f':''}"></button>`).join('')}</div></div>`;$$('.trk button',mn).forEach(b=>b.onclick=()=>{eff=+b.dataset.i;paintBtns();show('eff')});return}
+  const q=ta.value.match(/(^|\s)([@/])([\w-]*)$/)?.[3].toLowerCase()||'';
+  list=kind==='cmd'?CMD.filter(c=>c[0].slice(1).startsWith(q)):SRC.filter(s=>s[0].toLowerCase().includes(q));
+  cur=Math.min(cur,Math.max(0,list.length-1));
+  mn.innerHTML=list.map((r,i)=>`<button class="row2${i===cur?' cur':''}" data-i="${i}"><b>${r[0]}</b><span>${r[1]}</span></button>`).join('')||'<div class="row2">No matches</div>';
+  $$('.row2[data-i]',mn).forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>choose(+b.dataset.i)})
+ }
+ function choose(i){const r=list[i];if(!r)return;const head=ta.value.replace(/(^|\s)([@/])([\w-]*)$/,'$1');
+  if(r[2]){ta.value=head;fin.click()}else ta.value=head+(menu==='cmd'?r[0]:'@'+r[0])+' ';
+  close();arm();ta.focus()}
+ fin.onchange=()=>{files.push(...[...fin.files].map(f=>f.name));fin.value='';renderChips();arm()};
+ const renderChips=()=>{chips.innerHTML=files.map((f,i)=>`<span class="chip">${esc(f)}<button data-i="${i}" aria-label="Remove ${esc(f)}">×</button></span>`).join('');$$('button',chips).forEach(b=>b.onclick=()=>{files.splice(+b.dataset.i,1);renderChips();arm()})};
+ ta.oninput=()=>{arm();cur=0;const m=ta.value.match(/(^|\s)([@/])[\w-]*$/);m?show(m[2]==='@'?'at':'cmd'):close()};
+ ta.onkeydown=e=>{
+  if(menu&&menu!=='eff'&&list.length){if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();cur=(cur+(e.key==='ArrowDown'?1:list.length-1))%list.length;show(menu);return}if((e.key==='Enter'&&!e.shiftKey)||e.key==='Tab'){e.preventDefault();choose(cur);return}}
+  if(e.key==='Escape'){close();return}
+  if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();submit()}};
+ $$('.tool,.pick',root).forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{const k={plus:'at',eff:'eff'}[b.dataset.a];if(menu===k){close();return}cur=0;if(k==='at')ta.value=ta.value.replace(/(^|\s)[@/][\w-]*$/,'$1');show(k)}});
+ document.addEventListener('pointerdown',e=>{if(!root.contains(e.target))close()});
+ function answer(q){
+  if(!analyzed)return['Press Analyze first, then ask away.',null];
+  const t=q.toLowerCase().replace('/','');
+  const hit=ANS.find(a=>a[0].test(t));
+  const note=files.length?' Uploads aren’t connected in this demo, so I answered from the sample paper.':'';
+  return hit?[styled(hit[1],hit[2])+note,hit[2]]:['I couldn’t find that in the sample paper. Try asking about its methods, results or limitations.'+note,null];
+ }
+ function submit(){
+  const text=ta.value.trim();if(busy||(!text&&!files.length))return;
+  const p=document.createElement('p');p.textContent=text||files.join(', ');log.appendChild(p);
+  const st=document.createElement('div');log.appendChild(st);const ll=lattice(st,'Thinking');ll.set('working');
+  const [ans,sec]=answer(text);
+  ta.value='';close();busy=true;morph(1);arm();
+  const finish=ok=>{ll.set(ok?'done':'error');busy=false;morph(0);arm();send.onclick=()=>submit();if(ok){const b=document.createElement('p');b.className='bot';b.textContent=ans;log.appendChild(b);if(sec)showSec(sec);files=[];renderChips()}};
+  timer=setTimeout(()=>finish(true),1200+eff*450);
+  send.onclick=()=>{clearTimeout(timer);finish(false)};
+ }
+ send.onclick=()=>submit();
+ $('.field',root).onclick=e=>{if(e.target.closest('button,.gs'))return;ta.focus()};
+ paintBtns();arm();
+})();
+</script>
+</body>
+</html>
